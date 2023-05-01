@@ -1,0 +1,6 @@
+{
+  "md-source-dir": "C:\\Users\\user\\Obsidian\\Blog\\release\\",
+  "output-dir": "C:\\Users\\user\\myblog",
+  "base-page-html": "templates\/base.html",
+  "index-page-html": "templates\/index.html"
+}
