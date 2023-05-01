@@ -1,4 +1,9 @@
 # Ractic
+<div align="center">
+<img src="https://raw.githubusercontent.com/oromogans/ractic/master/img/ractic_logo.jpg">
+<hr/>
+</div>
+
 A very simple generator of static sites.
 
 The code is under development.
