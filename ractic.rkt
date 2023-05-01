@@ -132,6 +132,9 @@
   (define base-page-html (hash-ref config 'base-page-html))
   (define index-page-html (hash-ref config 'index-page-html))
 
+  ; Create pages directory inside output-dir if it does not exist
+  (make-directory* (build-path output-dir "pages"))
+
 
   ; Create pages from the Markdown directory
   (create-pages-from-directory md-source-dir output-dir base-page-html)
