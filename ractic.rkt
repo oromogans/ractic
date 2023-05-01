@@ -2,10 +2,13 @@
 
 (require racket/file
          racket/path
-         racket/date
          markdown
+         srfi/19
+         json
          markdown/parse
+         racket/cmdline
          html-parsing
+         web-server/servlet-env
          html-template)
 (require markdown/display-xexpr)
 
@@ -80,7 +83,7 @@
     md-files))
 
 
-(define (create-index md-source-dir html-generated-dir output-dir base-page-html)
+(define (create-index md-source-dir output-dir base-page-html)
   ; List all files in the md-source-dir
   (define all-files (map (lambda (f) (build-path md-source-dir f)) (directory-list md-source-dir)))
 
@@ -91,14 +94,12 @@
   ; Sort the md-files list based on the last modification date
   (define sorted-md-files+dates (sort md-files+dates (lambda (a b) (> (cdr a) (cdr b)))))
 
-  ; Calculate the relative path between the output directory and the HTML generated directory
-  (define relative-path (find-relative-path output-dir html-generated-dir))
 
   ; Generate the HTML list of links
   (define index-content (string-append* (map (lambda (file+date)
                                                (let* ([md-file (car file+date)]
                                                       [last-modified (seconds->date (cdr file+date))]
-                                                      [formatted-date (date->string last-modified "~B ~d, ~Y")]
+                                                      [formatted-date (date->string last-modified "~B ~e, ~Y")]
                                                       [html-file (path->string (build-path "pages" (file-name-from-path (path-replace-extension md-file ".html"))))]
                                                       [title (get-title md-file)])
                                                  (format "<li><span>~a</span> <a href=\"~a\">~a</a></li>\n" formatted-date html-file title)))
@@ -115,3 +116,42 @@
     (lambda (output-port)
       (display final-html output-port))))
 
+(define (read-config config-file)
+  (call-with-input-file config-file
+    (lambda (input-port)
+      (let ([config-str (port->string input-port)])
+        (string->jsexpr config-str)))))
+
+(define (build-command)
+  ; Read the configuration
+  (define config (read-config (config-file)))
+
+  ; Extract the configuration values
+  (define md-source-dir (hash-ref config 'md-source-dir))
+  (define output-dir (hash-ref config 'output-dir))
+  (define base-page-html (hash-ref config 'base-page-html))
+  (define index-page-html (hash-ref config 'index-page-html))
+
+
+  ; Create pages from the Markdown directory
+  (create-pages-from-directory md-source-dir output-dir base-page-html)
+
+  ; Create a new index file
+  (create-index md-source-dir output-dir index-page-html))
+
+(define config-file (make-parameter "config.json"))
+(define build (make-parameter #f))
+
+(command-line
+ #:program "ractic"
+ #:once-each
+ [("-c" "--config") CONFIG
+  "Path to the config file"
+  (config-file CONFIG)]
+ [("-b" "--build")
+  "Build the site"
+  (build #t)]
+)
+
+(when (build)
+  (build-command))
