@@ -10,7 +10,7 @@
          html-parsing
          web-server/servlet-env
          html-template)
-(require markdown/display-xexpr)
+
 
 (define (get-title fname) (regexp-replace #rx".md" (path->string(file-name-from-path fname)) ""))
 
